@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Clock</title>
+  <style>
+    canvas {
+      display: block;
+      margin: auto;
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body onload="startClock()">
+  <canvas id="clock" width="200" height="200"></canvas>
+  <div id="time" style="text-align: center; font-size: 24px; margin-top: 20px;"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
+  <script>
+
+    var latitude = -36.8485;
+    var longitude = 174.7633;
+    var sunrise, sunset, totalTime;
+
+    function startClock() {
+  navigator.geolocation.getCurrentPosition(function(position) {
+    latitude = position.coords.latitude;
+    longitude = position.coords.longitude;
+
+    var date = new Date();
+    sunrise = SunCalc.getTimes(date, latitude, longitude).sunrise;
+    sunset = SunCalc.getTimes(date, latitude, longitude).sunset;
+    totalTime = sunset.getTime() - sunrise.getTime();
+
+    setInterval(updateTime, 1000);
+    drawClock();
+  });
+}
+
+   function updateTime() {
+      var now = new Date();
+      var elapsed = now.getTime() - sunrise.getTime();
+      var adjustedTime = new Date(now.getTime() + (elapsed / totalTime) * 43200000);
+      var hours = adjustedTime.getHours();
+      var minutes = adjustedTime.getMinutes();
+      var seconds = adjustedTime.getSeconds();
+      document.getElementById("time").innerHTML = formatTime(hours) + ":" + formatTime(minutes) + ":" + formatTime(seconds);
+      drawClock(hours, minutes, seconds);
+    }
+
+
+    function formatTime(time) {
+      return time < 10 ? "0" + time : time;
+    }
+
+    function drawClock(hours, minutes, seconds) {
+      var canvas = document.getElementById("clock");
+      var ctx = canvas.getContext("2d");
+      var centerX = canvas.width / 2;
+      var centerY = canvas.height / 2;
+      var radius = canvas.width / 2 * 0.9;
+      var hourAngle = (hours % 12) / 12 * 2 * Math.PI - Math.PI / 2;
+      var minuteAngle = minutes / 60 * 2 * Math.PI - Math.PI / 2;
+      var secondAngle = seconds / 60 * 2 * Math.PI - Math.PI / 2;
+
+      // clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // draw clock face
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // draw hour hand
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + radius * 0.5 * Math.cos(hourAngle), centerY + radius * 0.5 * Math.sin(hourAngle));
+      ctx.stroke();
+
+      // draw minute hand
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + radius * 0.7 * Math.cos(minuteAngle), centerY + radius * 0.7 * Math.sin(minuteAngle));
+      ctx.stroke();
+
+      // draw second hand
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + radius * 0.8 * Math.cos(secondAngle), centerY + radius * 0.8 * Math.sin(secondAngle));
+      ctx.stroke();
+
+      // draw center dot
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius * 0.05, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+
+    function adjustTime() {
+      // replace this function with your own time adjustment function
+      // for example, if you want to adjust the time by -2 hours, you can return -2 * 60 * 60 * 1000
+      return 0; // default adjustment is 0
+    }
+  </script>
+</body>
+</html>
